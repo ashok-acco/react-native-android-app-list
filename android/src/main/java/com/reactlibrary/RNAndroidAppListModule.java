@@ -1,25 +1,23 @@
 
+
 package com.reactlibrary;
-
-import android.content.Context;
-
-import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
-import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.Callback;
-import com.facebook.react.bridge.Promise;
 
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.os.Bundle;
-import android.util.Log;
+import android.content.pm.PermissionInfo;
 
-import java.util.List;
-import java.util.ArrayList;
-import org.json.JSONObject;
+import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContextBaseJavaModule;
+import com.facebook.react.bridge.ReactMethod;
+
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RNAndroidAppListModule extends ReactContextBaseJavaModule {
 
@@ -33,6 +31,27 @@ public class RNAndroidAppListModule extends ReactContextBaseJavaModule {
   @Override
   public String getName() {
     return "RNAndroidAppList";
+  }
+
+  private String getPermissionLabel(String permission, PackageManager packageManager) {
+    try {
+      PermissionInfo permissionInfo = packageManager.getPermissionInfo(permission, 0);
+      return permissionInfo.loadLabel(packageManager).toString();
+    } catch (PackageManager.NameNotFoundException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+
+  private String getPermissionDescription(String permission, PackageManager packageManager) {
+    try {
+      PermissionInfo permissionInfo = packageManager.getPermissionInfo(permission, 0);
+      return permissionInfo.loadDescription(packageManager).toString();
+    } catch (PackageManager.NameNotFoundException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   
@@ -54,7 +73,9 @@ public class RNAndroidAppListModule extends ReactContextBaseJavaModule {
         if (requestedPermissions != null) {
           for (int i = 0; i < requestedPermissions.length; i++) {
             boolean status = pm.checkPermission(requestedPermissions[i], applicationInfo.packageName) == PackageManager.PERMISSION_GRANTED ? true : false;
-            ApplicationPermission permission = new ApplicationPermission(applicationInfo.packageName, requestedPermissions[i], status);
+            String label = this.getPermissionLabel(applicationInfo.packageName, pm);
+            String desc = this.getPermissionDescription(applicationInfo.packageName, pm);
+            ApplicationPermission permission = new ApplicationPermission(applicationInfo.packageName, requestedPermissions[i], status, label,desc);
             appPermissions.add(permission);
           }
         }
@@ -75,11 +96,15 @@ public class RNAndroidAppListModule extends ReactContextBaseJavaModule {
     private String packageName;
     private String permissionName;
     private boolean granted;
+    private  String permissionLabel;
+    private String permissionDescription;
 
-    public ApplicationPermission(String packageName, String permissionName, boolean granted) {
+    public ApplicationPermission(String packageName, String permissionName, boolean granted, String label, String desc) {
       this.packageName = packageName;
       this.permissionName = permissionName;
       this.granted = granted;
+      this.permissionLabel = label;
+      this.permissionDescription = desc;
     }
 
     public void setPackageName(String packageName) {
@@ -106,12 +131,30 @@ public class RNAndroidAppListModule extends ReactContextBaseJavaModule {
       return this.granted;
     }
 
+    public  void setPermissionLabel(String label) {
+      this.permissionLabel = label;
+    }
+
+    public  String getPermissionLabel(){
+      return  this.permissionLabel;
+    }
+
+    public  void setPermissionDescription(String desc) {
+      this.permissionDescription = desc;
+    }
+
+    public  String getPermissionDescription(){
+      return this.permissionDescription;
+    }
+
     public JSONObject getJSONObject() {
       JSONObject obj = new JSONObject();
       try {
         obj.put("packageName", getPackageName());
         obj.put("permissionName", getPermissionName());
         obj.put("granted", isGranted());
+        obj.put("label", getPermissionLabel());
+        obj.put("desc", getPermissionDescription());
       } catch (JSONException e) {
         
       }
