@@ -6,6 +6,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PermissionInfo;
+import android.util.Log;
 
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -34,24 +35,28 @@ public class RNAndroidAppListModule extends ReactContextBaseJavaModule {
   }
 
   private String getPermissionLabel(String permission, PackageManager packageManager) {
+    Log.v("getPermissionLabel", permission);
     try {
       PermissionInfo permissionInfo = packageManager.getPermissionInfo(permission, 0);
-      return permissionInfo.loadLabel(packageManager).toString();
+      CharSequence cs = permissionInfo.loadLabel(packageManager);
+      return cs != null ? cs.toString() : "";
     } catch (PackageManager.NameNotFoundException e) {
       e.printStackTrace();
     }
-    return null;
+    return "";
   }
 
 
   private String getPermissionDescription(String permission, PackageManager packageManager) {
+    Log.v("getPermissionDesc", permission);
     try {
       PermissionInfo permissionInfo = packageManager.getPermissionInfo(permission, 0);
-      return permissionInfo.loadDescription(packageManager).toString();
+      CharSequence cs = permissionInfo.loadDescription(packageManager);
+      return cs != null ? cs.toString() : "";
     } catch (PackageManager.NameNotFoundException e) {
       e.printStackTrace();
     }
-    return null;
+    return "";
   }
 
   
@@ -73,8 +78,8 @@ public class RNAndroidAppListModule extends ReactContextBaseJavaModule {
         if (requestedPermissions != null) {
           for (int i = 0; i < requestedPermissions.length; i++) {
             boolean status = pm.checkPermission(requestedPermissions[i], applicationInfo.packageName) == PackageManager.PERMISSION_GRANTED ? true : false;
-            String label = this.getPermissionLabel(applicationInfo.packageName, pm);
-            String desc = this.getPermissionDescription(applicationInfo.packageName, pm);
+            String label = this.getPermissionLabel(requestedPermissions[i], pm);
+            String desc = this.getPermissionDescription(requestedPermissions[i], pm);
             ApplicationPermission permission = new ApplicationPermission(applicationInfo.packageName, requestedPermissions[i], status, label,desc);
             appPermissions.add(permission);
           }
