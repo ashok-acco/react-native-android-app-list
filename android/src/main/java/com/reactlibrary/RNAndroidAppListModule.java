@@ -79,7 +79,7 @@ public class RNAndroidAppListModule extends ReactContextBaseJavaModule {
           for (int i = 0; i < requestedPermissions.length; i++) {
             boolean status = pm.checkPermission(requestedPermissions[i], applicationInfo.packageName) == PackageManager.PERMISSION_GRANTED ? true : false;
             String label = this.getPermissionLabel(requestedPermissions[i], pm);
-            String desc = this.getPermissionDescription(requestedPermissions[i], pm);
+            String desc = "";// this.getPermissionDescription(requestedPermissions[i], pm);
             ApplicationPermission permission = new ApplicationPermission(applicationInfo.packageName, requestedPermissions[i], status, label,desc);
             appPermissions.add(permission);
           }
